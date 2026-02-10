@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Конфиденциальная система доставки</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            height: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            background: #f5f2eb;
+            color: #2d2a24;
+            font-family: 'Source Code Pro', monospace;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Бумажная текстура фона */
+        .paper-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background: 
+                linear-gradient(rgba(245, 242, 235, 0.8), rgba(245, 242, 235, 0.8)),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23f5f2eb"/><path d="M0,50 L100,50 M50,0 L50,100" stroke="%237a6f5e" stroke-width="0.5" stroke-opacity="0.1"/></svg>');
+        }
+
+        /* Экран загрузки системы */
+        .boot-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f5f2eb;
+            color: #5a5348;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            font-family: 'Courier Prime', monospace;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .boot-text {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            max-width: 600px;
+        }
+
+        .boot-progress {
+            width: 300px;
+            height: 2px;
+            background: rgba(122, 111, 94, 0.2);
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .boot-progress-bar {
+            height: 100%;
+            background: #7a6f5e;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Экран входа */
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f5f2eb;
+            color: #5a5348;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 900;
+            font-family: 'Source Code Pro', monospace;
+            padding: 20px;
+            display: none;
+        }
+
+        .system-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .system-title {
+            font-size: 32px;
+            color: #5a5348;
+            margin-bottom: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .system-version {
+            font-size: 14px;
+            color: #7a6f5e;
+            letter-spacing: 2px;
+        }
+
+        .login-container {
+            background: #fff;
+            border: 2px solid #7a6f5e;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            position: relative;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            bottom: 5px;
+            border: 1px solid rgba(122, 111, 94, 0.2);
+            pointer-events: none;
+        }
+
+        .login-title {
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #5a5348;
+            letter-spacing: 2px;
+        }
+
+        .login-field {
+            margin-bottom: 25px;
+        }
+
+        .login-label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #7a6f5e;
+            letter-spacing: 1px;
+        }
+
+        .login-input {
+            width: 100%;
+            background: #fff;
+            border: 1px solid #7a6f5e;
+            color: #2d2a24;
+            padding: 12px 15px;
+            font-family: 'Courier Prime', monospace;
+            font-size: 18px;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: #5a5348;
+            box-shadow: 0 0 10px rgba(122, 111, 94, 0.2);
+        }
+
+        .login-button {
+            width: 100%;
+            background: #7a6f5e;
+            border: 1px solid #7a6f5e;
+            color: #fff;
+            padding: 15px;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 20px;
+        }
+
+        .login-button:hover {
+            background: #5a5348;
+            box-shadow: 0 0 20px rgba(122, 111, 94, 0.3);
+        }
+
+        .login-button:active {
+            transform: scale(0.98);
+        }
+
+        .login-hint {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #7a6f5e;
+            opacity: 0.7;
+        }
+
+        /* Таймер доставки сообщения */
+        .delivery-timer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #fff;
+            border: 2px solid #7a6f5e;
+            padding: 15px;
+            z-index: 950;
+            display: none;
+            max-width: 300px;
+        }
+
+        .delivery-title {
+            font-size: 16px;
+            color: #5a5348;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .delivery-code {
+            background: #f8f6f0;
+            border: 1px solid #7a6f5e;
+            padding: 15px;
+            font-family: 'Courier Prime', monospace;
+            font-size: 18px;
+            letter-spacing: 2px;
+            text-align: center;
+            margin: 15px 0;
+            color: #5a5348;
+        }
+
+        .delivery-input {
+            width: 100%;
+            background: #fff;
+            border: 1px solid #7a6f5e;
+            color: #5a5348;
+            padding: 10px;
+            font-family: 'Courier Prime', monospace;
+            font-size: 16px;
+            letter-spacing: 2px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .delivery-button {
+            width: 100%;
+            background: #5a5348;
+            border: 1px solid #5a5348;
+            color: #fff;
+            padding: 10px;
+            font-family: 'Source Code Pro', monospace;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .delivery-button:hover {
+            background: #3a352d;
+        }
+
+        /* Основной интерфейс */
+        .main-interface {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: #f5f2eb;
+            color: #2d2a24;
+            font-family: 'Courier Prime', monospace;
+            flex-direction: column;
+            z-index: 800;
+        }
+
+        /* Анимации */
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        .blink {
+            animation: blink 1s infinite;
+        }
+
+        .glitch {
+            animation: glitch 0.3s;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 30px 20px;
+                margin: 0 20px;
+            }
+            
+            .system-title {
+                font-size: 24px;
+            }
+            
+            .login-title {
+                font-size: 20px;
+            }
+            
+            .boot-text {
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 25px 15px;
+            }
+            
+            .system-title {
+                font-size: 20px;
+            }
+            
+            .login-title {
+                font-size: 18px;
+            }
+            
+            .login-input {
+                font-size: 16px;
+                padding: 10px;
+            }
+            
+            .boot-text {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Бумажный фон -->
+    <div class="paper-bg"></div>
+    
+    <!-- Экран загрузки -->
+    <div class="boot-screen" id="bootScreen">
+        <div class="boot-text" id="bootText">
+            > ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ...<br>
+            > ЗАГРУЗКА ПРОТОКОЛА...<br>
+            > ПРОВЕРКА ДОСТУПА...<br>
+            > УСТАНОВКА СОЕДИНЕНИЯ...<br>
+            > СИСТЕМА ГОТОВА
+        </div>
+        <div class="boot-progress">
+            <div class="boot-progress-bar" id="bootProgress"></div>
+        </div>
+    </div>
+    
+    <!-- Экран входа -->
+    <div class="login-screen" id="loginScreen">
+        <div class="system-header">
+            <div class="system-title">СИСТЕМА ДОСТАВКИ</div>
+            <div class="system-version">КОНФИДЕНЦИАЛЬНЫЕ СООБЩЕНИЯ</div>
+        </div>
+        
+        <div class="login-container">
+            <div class="login-title">ТРЕБУЕТСЯ АУТЕНТИФИКАЦИЯ</div>
+            
+            <div class="login-field">
+                <label class="login-label">ЛОГИН:</label>
+                <input type="text" class="login-input" id="loginInput" placeholder="Введите логин">
+            </div>
+            
+            <div class="login-field">
+                <label class="login-label">ПАРОЛЬ:</label>
+                <input type="password" class="login-input" id="passwordInput" placeholder="Введите пароль">
+            </div>
+            
+            <button class="login-button" id="loginBtn">ПОДКЛЮЧИТЬСЯ</button>
+            
+            <div class="login-hint">
+                СИСТЕМА ДОСТАВКИ КОНФИДЕНЦИАЛЬНЫХ СООБЩЕНИЙ<br>
+                АУТЕНТИФИКАЦИЯ ОБЯЗАТЕЛЬНА
+            </div>
+        </div>
+    </div>
+    
+    <!-- Таймер доставки сообщения -->
+    <div class="delivery-timer" id="deliveryTimer">
+        <div class="delivery-title">ДОСТАВКА СООБЩЕНИЯ</div>
+        <div>Код подтверждения:</div>
+        <div class="delivery-code" id="accessCode">••••••••••••••</div>
+        <input type="text" class="delivery-input" id="accessInput" placeholder="ВВЕДИТЕ КОД ДОСТУПА" maxlength="14">
+        <div style="font-size: 12px; color: #7a6f5e; margin: 10px 0; text-align: center;">
+            Доставка: <span id="deliveryTime">14.02.2026 00:00 MSK</span>
+        </div>
+        <button class="delivery-button" id="accessBtn">ПОДТВЕРДИТЬ</button>
+        <button class="delivery-button" style="background: #7a6f5e; margin-top: 5px;" id="closeAccessBtn">ЗАКРЫТЬ</button>
+    </div>
+    
+    <!-- Основной интерфейс -->
+    <div class="main-interface" id="mainInterface"></div>
+
+    <script>
+        // Пароль для входа
+        const SYSTEM_PASSWORD = "V@l3nt1n3_2026";
+        
+        // Код для раннего доступа (тот же пароль)
+        const EARLY_ACCESS_CODE = "V@l3nt1n3_2026";
+        
+        // Генерация случайного кода доступа (для отображения на сайте)
+        function generateAccessCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+            let code = '';
+            for (let i = 0; i < 14; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+        
+        // Сохранение и загрузка кода доступа
+        function getStoredAccessCode() {
+            const stored = sessionStorage.getItem('message_access_code');
+            if (stored) {
+                return stored;
+            }
+            const newCode = generateAccessCode();
+            sessionStorage.setItem('message_access_code', newCode);
+            return newCode;
+        }
+        
+        // Проверка, активирован ли ранний доступ
+        function isEarlyAccessActivated() {
+            return sessionStorage.getItem('message_early_access') === 'true';
+        }
+        
+        // Активация раннего доступа
+        function activateEarlyAccess() {
+            sessionStorage.setItem('message_early_access', 'true');
+        }
+        
+        // Сброс состояния при загрузке
+        function resetAuthState() {
+            sessionStorage.removeItem('is_authenticated');
+        }
+        
+        // Целевая дата: 14 февраля 2026 года, 00:00 по Москве
+        const targetDate = new Date('2026-02-14T00:00:00+03:00'); // MSK = UTC+3
+        
+        // Переменные
+        let accessCode = getStoredAccessCode();
+        let isAuthenticated = false;
+        
+        // Элементы DOM
+        const bootScreen = document.getElementById('bootScreen');
+        const bootText = document.getElementById('bootText');
+        const bootProgress = document.getElementById('bootProgress');
+        const loginScreen = document.getElementById('loginScreen');
+        const mainInterface = document.getElementById('mainInterface');
+        const loginInput = document.getElementById('loginInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const deliveryTimer = document.getElementById('deliveryTimer');
+        const accessCodeEl = document.getElementById('accessCode');
+        const accessInput = document.getElementById('accessInput');
+        const accessBtn = document.getElementById('accessBtn');
+        const closeAccessBtn = document.getElementById('closeAccessBtn');
+        const deliveryTime = document.getElementById('deliveryTime');
+        
+        // Сброс аутентификации при загрузке
+        resetAuthState();
+        
+        // Установка даты доставки
+        deliveryTime.textContent = '14.02.2026 00:00 MSK';
+        accessCodeEl.textContent = '••••••••••••••';
+        
+        // Функция обновления времени до доставки
+        function updateDeliveryTime() {
+            const now = new Date();
+            const timeDiff = targetDate.getTime() - now.getTime();
+            
+            if (timeDiff <= 0) {
+                return "СООБЩЕНИЕ ДОСТАВЛЕНО";
+            }
+            
+            const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+            
+            return `${days}д ${hours}ч ${minutes}м ${seconds}с`;
+        }
+        
+        // Функция проверки, наступила ли целевая дата
+        function isTargetDateReached() {
+            const now = new Date();
+            return now >= targetDate || isEarlyAccessActivated();
+        }
+        
+        // Загрузка системы
+        function bootSystem() {
+            const bootMessages = [
+                "> ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ...",
+                "> ЗАГРУЗКА ПРОТОКОЛА...",
+                "> ПРОВЕРКА ДОСТУПА...",
+                "> УСТАНОВКА СОЕДИНЕНИЯ...",
+                "> СИСТЕМА ГОТОВА"
+            ];
+            
+            let currentMessage = 0;
+            
+            function showNextMessage() {
+                if (currentMessage < bootMessages.length) {
+                    bootText.innerHTML = bootMessages.slice(0, currentMessage + 1).join('<br>');
+                    bootProgress.style.width = ((currentMessage + 1) / bootMessages.length * 100) + '%';
+                    currentMessage++;
+                    setTimeout(showNextMessage, 800);
+                } else {
+                    setTimeout(() => {
+                        bootScreen.style.display = 'none';
+                        loginScreen.style.display = 'flex';
+                        
+                        // АВТОМАТИЧЕСКОЕ ЗАПОЛНЕНИЕ ПОЛЕЙ ВХОДА
+                        setTimeout(() => {
+                            simulateTyping(loginInput, 'AGENT', 100, () => {
+                                setTimeout(() => {
+                                    simulateTyping(passwordInput, SYSTEM_PASSWORD, 80, () => {
+                                        loginBtn.classList.add('blink');
+                                    });
+                                }, 500);
+                            });
+                        }, 500);
+                    }, 1000);
+                }
+            }
+            
+            showNextMessage();
+        }
+        
+        // Симуляция печати для автозаполнения
+        function simulateTyping(element, text, speed, callback) {
+            let i = 0;
+            element.value = '';
+            
+            function typeChar() {
+                if (i < text.length) {
+                    element.value += text.charAt(i);
+                    i++;
+                    setTimeout(typeChar, speed);
+                } else if (callback) {
+                    setTimeout(callback, 500);
+                }
+            }
+            
+            typeChar();
+        }
+        
+        // Кнопка входа
+        loginBtn.addEventListener('click', function() {
+            const username = loginInput.value.trim();
+            const password = passwordInput.value;
+            
+            // Проверка логина и пароля
+            if (password === SYSTEM_PASSWORD) {
+                isAuthenticated = true;
+                sessionStorage.setItem('is_authenticated', 'true');
+                this.textContent = 'ДОСТУП РАЗРЕШЁН';
+                this.style.background = '#5a5348';
+                
+                // Эффект входа
+                loginScreen.classList.add('glitch');
+                setTimeout(() => {
+                    loginScreen.classList.remove('glitch');
+                    loginScreen.style.display = 'none';
+                    
+                    // Загружаем основной интерфейс
+                    loadMainInterface();
+                    mainInterface.style.display = 'flex';
+                    
+                    // Показываем таймер доставки если нужно
+                    if (!isTargetDateReached()) {
+                        setTimeout(() => {
+                            deliveryTimer.style.display = 'block';
+                            // Не показываем настоящий код на сайте!
+                            accessCodeEl.textContent = '••••••••••••••';
+                        }, 1000);
+                    }
+                }, 1000);
+            } else {
+                loginInput.style.borderColor = '#c44';
+                passwordInput.style.borderColor = '#c44';
+                loginInput.style.boxShadow = '0 0 10px rgba(204, 68, 68, 0.3)';
+                passwordInput.style.boxShadow = '0 0 10px rgba(204, 68, 68, 0.3)';
+                
+                setTimeout(() => {
+                    loginInput.style.borderColor = '#7a6f5e';
+                    passwordInput.style.borderColor = '#7a6f5e';
+                    loginInput.style.boxShadow = 'none';
+                    passwordInput.style.boxShadow = 'none';
+                }, 1000);
+            }
+        });
+        
+        // Кнопка подтверждения кода доступа
+        accessBtn.addEventListener('click', function() {
+            const input = accessInput.value.trim();
+            // Используем заранее заданный код
+            if (input === EARLY_ACCESS_CODE) {
+                activateEarlyAccess();
+                deliveryTimer.style.display = 'none';
+                
+                // Обновляем интерфейс
+                updateMainInterface();
+                showNotification('Доступ к сообщению получен.');
+            } else {
+                accessInput.style.borderColor = '#c44';
+                accessInput.style.boxShadow = '0 0 10px rgba(204, 68, 68, 0.3)';
+                setTimeout(() => {
+                    accessInput.style.borderColor = '#7a6f5e';
+                    accessInput.style.boxShadow = 'none';
+                }, 1000);
+            }
+        });
+        
+        // Закрыть таймер доставки
+        closeAccessBtn.addEventListener('click', function() {
+            deliveryTimer.style.display = 'none';
+        });
+        
+        // Показ уведомления
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #fff;
+                border: 2px solid #7a6f5e;
+                color: #5a5348;
+                padding: 15px 25px;
+                font-family: 'Source Code Pro', monospace;
+                z-index: 10000;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                max-width: 90%;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+        
+        // Загрузка основного интерфейса
+        function loadMainInterface() {
+            const mainHTML = `
+                <style>
+                    .main-interface {
+                        display: flex;
+                        flex-direction: column;
+                        width: 100%;
+                        height: 100%;
+                    }
+                    
+                    /* Статус бар */
+                    .status-bar {
+                        background: #fff;
+                        border-bottom: 2px solid #7a6f5e;
+                        padding: 12px 20px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        font-family: 'Source Code Pro', monospace;
+                        font-size: 14px;
+                        color: #5a5348;
+                        letter-spacing: 1px;
+                        position: relative;
+                        z-index: 10;
+                        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+                        flex-shrink: 0;
+                    }
+                    
+                    .status-left {
+                        display: flex;
+                        align-items: center;
+                        gap: 15px;
+                        flex-wrap: wrap;
+                    }
+                    
+                    .status-right {
+                        display: flex;
+                        align-items: center;
+                        gap: 15px;
+                        flex-wrap: wrap;
+                    }
+                    
+                    .system-time {
+                        font-weight: 500;
+                        font-size: 16px;
+                    }
+                    
+                    .countdown {
+                        font-family: 'Source Code Pro', monospace;
+                        font-size: 14px;
+                        color: #7a6f5e;
+                        background: rgba(255, 255, 255, 0.3);
+                        padding: 4px 8px;
+                        border-radius: 3px;
+                        border: 1px solid rgba(122, 111, 94, 0.3);
+                    }
+                    
+                    /* Основной контейнер */
+                    .main-container {
+                        display: flex;
+                        flex: 1;
+                        max-width: 1200px;
+                        margin: 30px auto;
+                        background: #fff;
+                        border: 2px solid #7a6f5e;
+                        position: relative;
+                        z-index: 5;
+                        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
+                        width: 90%;
+                        height: calc(100% - 100px);
+                        overflow: hidden;
+                    }
+                    
+                    /* Панель навигации */
+                    .nav-panel {
+                        width: 250px;
+                        background: #f8f6f0;
+                        border-right: 2px solid #7a6f5e;
+                        padding: 30px 20px;
+                        display: flex;
+                        flex-direction: column;
+                        flex-shrink: 0;
+                        overflow-y: auto;
+                    }
+                    
+                    .user-info {
+                        text-align: center;
+                        margin-bottom: 30px;
+                        padding-bottom: 20px;
+                        border-bottom: 1px solid rgba(122, 111, 94, 0.2);
+                    }
+                    
+                    .user-name {
+                        font-family: 'Source Code Pro', monospace;
+                        font-size: 20px;
+                        color: #5a5348;
+                        margin-bottom: 5px;
+                    }
+                    
+                    .nav-menu li {
+                        padding: 15px;
+                        border-bottom: 1px solid rgba(122, 111, 94, 0.2);
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        font-family: 'Source Code Pro', monospace;
+                        color: #5a5348;
+                        font-size: 15px;
+                    }
+                    
+                    .nav-menu li:hover {
+                        background: rgba(122, 111, 94, 0.05);
+                        border-left: 3px solid #7a6f5e;
+                    }
+                    
+                    .nav-menu li.active {
+                        background: rgba(122, 111, 94, 0.1);
+                        border-left: 3px solid #5a5348;
+                        font-weight: 500;
+                    }
+                    
+                    /* Основная область контента */
+                    .content-area {
+                        flex: 1;
+                        display: flex;
+                        flex-direction: column;
+                        min-width: 0;
+                        overflow-y: auto;
+                    }
+                    
+                    .content-header {
+                        background: #f5f2eb;
+                        border-bottom: 2px solid #7a6f5e;
+                        padding: 25px 30px;
+                    }
+                    
+                    .content-title {
+                        font-family: 'Source Code Pro', monospace;
+                        font-size: 24px;
+                        color: #5a5348;
+                        margin-bottom: 10px;
+                        font-weight: 500;
+                        letter-spacing: 1px;
+                    }
+                    
+                    .content-body {
+                        padding: 30px;
+                        flex: 1;
+                    }
+                    
+                    /* Уведомление о будущем сообщении */
+                    .message-notification {
+                        background: #fff;
+                        border: 2px solid #7a6f5e;
+                        padding: 40px;
+                        text-align: center;
+                        position: relative;
+                        max-width: 600px;
+                        margin: 0 auto;
+                    }
+                    
+                    .notification-title {
+                        font-family: 'Source Code Pro', monospace;
+                        font-size: 28px;
+                        color: #3a352d;
+                        margin-bottom: 20px;
+                        font-weight: 500;
+                    }
+                    
+                    .notification-timer {
+                        font-family: 'Courier Prime', monospace;
+                        font-size: 22px;
+                        color: #7a6f5e;
+                        background: #f8f6f0;
+                        padding: 20px 40px;
+                        border-radius: 5px;
+                        display: inline-block;
+                        border: 2px dashed #7a6f5e;
+                        margin-top: 20px;
+                    }
+                    
+                    /* Сообщение */
+                    .message-item {
+                        background: #fff;
+                        border-bottom: 2px solid #7a6f5e;
+                        padding: 25px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        position: relative;
+                        display: none;
+                    }
+                    
+                    .message-item.active {
+                        display: block;
+                        animation: fadeIn 0.5s ease;
+                    }
+                    
+                    @keyframes fadeIn {
+                        from { opacity: 0; transform: translateY(-10px); }
+                        to { opacity: 1; transform: translateY(0); }
+                    }
+                    
+                    .message-sender {
+                        font-family: 'Source Code Pro', monospace;
+                        font-size: 16px;
+                        color: #5a5348;
+                        margin-bottom: 8px;
+                        font-weight: 500;
+                    }
+                    
+                    .message-subject {
+                        font-family: 'Source Code Pro', monospace;
+                        font-size: 22px;
+                        color: #3a352d;
+                        margin-bottom: 10px;
+                        font-weight: 500;
+                        letter-spacing: 0.5px;
+                    }
+                    
+                    .message-date {
+                        font-family: 'Courier Prime', monospace;
+                        font-size: 14px;
+                        color: #7a6f5e;
+                        text-align: right;
+                        margin-top: 10px;
+                    }
+                    
+                    /* Инструкции */
+                    .instructions {
+                        margin-top: 30px;
+                        padding: 20px;
+                        background: #f8f6f0;
+                        border: 1px solid #7a6f5e;
+                        font-size: 14px;
+                        line-height: 1.6;
+                        color: #5a5348;
+                    }
+                    
+                    /* Адаптивность */
+                    @media (max-width: 768px) {
+                        .main-container {
+                            flex-direction: column;
+                            margin: 10px auto;
+                            width: 95%;
+                            height: calc(100% - 80px);
+                        }
+                        
+                        .nav-panel {
+                            width: 100%;
+                            border-right: none;
+                            border-bottom: 2px solid #7a6f5e;
+                            padding: 20px;
+                        }
+                        
+                        .content-header {
+                            padding: 20px;
+                        }
+                        
+                        .content-body {
+                            padding: 20px;
+                        }
+                        
+                        .notification-title {
+                            font-size: 22px;
+                        }
+                        
+                        .notification-timer {
+                            font-size: 18px;
+                            padding: 15px 25px;
+                        }
+                    }
+                </style>
+                
+                <div class="status-bar">
+                    <div class="status-left">
+                        <div class="system-name">СИСТЕМА ДОСТАВКИ | v2.6</div>
+                        <div class="system-status">● СЕАНС АКТИВЕН</div>
+                    </div>
+                    <div class="status-right">
+                        <div class="system-date" id="currentDate">--.--.----</div>
+                        <div class="system-time" id="currentTime">--:--</div>
+                        <div class="countdown" id="countdownTimer">--:--:--</div>
+                    </div>
+                </div>
+                
+                <div class="main-container">
+                    <div class="nav-panel">
+                        <div class="user-info">
+                            <div class="user-name">АГЕНТ</div>
+                            <div class="user-status">В сети</div>
+                        </div>
+                        
+                        <ul class="nav-menu">
+                            <li class="active">Входящие</li>
+                            <li>Архив</li>
+                            <li>Настройки</li>
+                            <li id="logoutBtn">Выход</li>
+                        </ul>
+                        
+                        <div class="instructions">
+                            <strong>ИНСТРУКЦИИ:</strong><br>
+                            Система доставки конфиденциальных сообщений.<br>
+                            Все данные зашифрованы.
+                        </div>
+                    </div>
+                    
+                    <div class="content-area">
+                        <div class="content-header">
+                            <div class="content-title">ВХОДЯЩИЕ СООБЩЕНИЯ</div>
+                            <div>Защищённый канал связи активен</div>
+                        </div>
+                        
+                        <div class="content-body" id="contentBody">
+                            <!-- Содержимое будет сгенерировано JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            mainInterface.innerHTML = mainHTML;
+            updateMainInterface();
+            
+            // Инициализация интерфейса
+            initMainInterface();
+        }
+        
+        // Обновление основного интерфейса
+        function updateMainInterface() {
+            const isMessageAvailable = isTargetDateReached();
+            const contentBody = document.getElementById('contentBody');
+            
+            if (!contentBody) return;
+            
+            if (isMessageAvailable) {
+                contentBody.innerHTML = `
+                    <div class="message-item active unread" id="mainMessageNotification">
+                        <div class="message-sender">КОНФИДЕНЦИАЛЬНЫЙ ИСТОЧНИК</div>
+                        <div class="message-subject">СРОЧНОЕ СООБЩЕНИЕ: ВЫСШАЯ ВАЖНОСТЬ</div>
+                        <div class="message-preview">Получено зашифрованное сообщение с пометкой "Для немедленного прочтения". Требуется подтверждение личности получателя. Содержимое доступно после аутентификации...</div>
+                        <div class="message-date">14.02.2026 00:00 | ПРИОРИТЕТ: КРИТИЧЕСКИЙ</div>
+                    </div>
+                `;
+                
+                // Добавляем обработчик клика на сообщение
+                setTimeout(() => {
+                    const messageNotification = document.getElementById('mainMessageNotification');
+                    if (messageNotification) {
+                        messageNotification.addEventListener('click', function() {
+                            openValentineScene();
+                        });
+                    }
+                }, 100);
+            } else {
+                contentBody.innerHTML = `
+                    <div class="message-notification">
+                        <div class="notification-title">ОЖИДАЕТСЯ КОНФИДЕНЦИАЛЬНОЕ СООБЩЕНИЕ</div>
+                        <div class="notification-message">
+                            Вам придет важное сообщение 14 февраля 2026 в 00:00 по московскому времени (MSK).
+                            <br><br>
+                            Сообщение будет доставлено через защищённый канал связи.
+                        </div>
+                        <div class="notification-timer">
+                            Доставка через: <span id="timeRemaining">${updateDeliveryTime()}</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Обновление времени
+            updateCurrentTime();
+        }
+        
+        // Инициализация основного интерфейса
+        function initMainInterface() {
+            // Обновление времени каждую секунду
+            setInterval(updateCurrentTime, 1000);
+            
+            // Кнопка выхода
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    sessionStorage.removeItem('is_authenticated');
+                    sessionStorage.removeItem('message_early_access');
+                    location.reload();
+                });
+            }
+            
+            // Навигационное меню
+            const navItems = document.querySelectorAll('.nav-menu li:not(#logoutBtn)');
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    navItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    if (this.textContent !== 'Входящие') {
+                        showNotification('Раздел "' + this.textContent + '" временно недоступен');
+                    }
+                });
+            });
+        }
+        
+        // Обновление текущего времени
+        function updateCurrentTime() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('ru-RU');
+            const timeStr = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            
+            const dateEl = document.getElementById('currentDate');
+            const timeEl = document.getElementById('currentTime');
+            const countdownEl = document.getElementById('countdownTimer');
+            const remainingEl = document.getElementById('timeRemaining');
+            
+            if (dateEl) dateEl.textContent = dateStr;
+            if (timeEl) timeEl.textContent = timeStr;
+            
+            const timeDiff = targetDate.getTime() - now.getTime();
+            if (timeDiff > 0 && countdownEl) {
+                const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                countdownEl.textContent = `${days}д ${hours}ч ${minutes}м`;
+            } else if (countdownEl) {
+                countdownEl.textContent = "СООБЩЕНИЕ ДОСТАВЛЕНО";
+            }
+            
+            if (remainingEl) {
+                remainingEl.textContent = updateDeliveryTime();
+            }
+        }
+        
+        // Открытие сцены с валентинкой
+        function openValentineScene() {
+            const valentineSceneHTML = `
+                <style>
+                    .valentine-scene {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: #f5f2eb;
+                        z-index: 2000;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        padding: 20px;
+                        overflow: auto;
+                    }
+                    
+                    .valentine-container {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        gap: 40px;
+                        z-index: 10;
+                        position: relative;
+                        max-width: 500px;
+                        width: 100%;
+                    }
+                    
+                    .envelope-container {
+                        position: relative;
+                        width: 100%;
+                        max-width: 400px;
+                        height: 280px;
+                        cursor: pointer;
+                    }
+                    
+                    .envelope {
+                        position: absolute;
+                        width: 100%;
+                        height: 100%;
+                        background: #fff;
+                        border: 2px solid #7a6f5e;
+                        box-shadow: 
+                            0 10px 30px rgba(0, 0, 0, 0.08),
+                            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+                        transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+                        overflow: hidden;
+                        z-index: 2;
+                    }
+                    
+                    .envelope.open {
+                        transform: scale(0.95);
+                        opacity: 0;
+                    }
+                    
+                    .envelope-question {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        font-family: 'Source Code Pro', monospace;
+                        font-size: 24px;
+                        color: #5a5348;
+                        text-align: center;
+                        width: 85%;
+                        line-height: 1.4;
+                        z-index: 2;
+                        padding: 20px;
+                        background: rgba(255, 255, 255, 0.95);
+                        border: 1px solid rgba(122, 111, 94, 0.3);
+                        letter-spacing: 0.5px;
+                        font-weight: 500;
+                    }
+                    
+                    .buttons {
+                        display: flex;
+                        gap: 25px;
+                        margin-top: 20px;
+                        flex-wrap: wrap;
+                        justify-content: center;
+                    }
+                    
+                    .btn {
+                        padding: 16px 40px;
+                        font-family: 'Source Code Pro', monospace;
+                        font-size: 18px;
+                        background: #fff;
+                        border: 2px solid #7a6f5e;
+                        color: #5a5348;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        min-width: 140px;
+                        text-align: center;
+                        letter-spacing: 1px;
+                        text-transform: uppercase;
+                        font-weight: 500;
+                    }
+                    
+                    .btn-yes:hover {
+                        background: #5a5348;
+                        color: #fff;
+                    }
+                    
+                    .btn-no:hover {
+                        background: #c44;
+                        color: #fff;
+                        border-color: #c44;
+                    }
+                    
+                    .close-valentine {
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        width: 44px;
+                        height: 44px;
+                        background: #fff;
+                        border: 2px solid #7a6f5e;
+                        color: #5a5348;
+                        cursor: pointer;
+                        font-family: 'Courier Prime', monospace;
+                        font-size: 20px;
+                        font-weight: bold;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        transition: all 0.3s ease;
+                        z-index: 1001;
+                    }
+                </style>
+                
+                <button class="close-valentine" id="valentineCloseBtn">✕</button>
+                <div class="valentine-container">
+                    <div class="envelope-container">
+                        <div class="envelope" id="valentineEnvelope">
+                            <div class="envelope-question">ТЫ БУДЕШЬ МОЕЙ ВАЛЕНТИНКОЙ?</div>
+                        </div>
+                    </div>
+                    
+                    <div class="buttons">
+                        <button class="btn btn-yes" id="valentineYesBtn">ДА</button>
+                        <button class="btn btn-no" id="valentineNoBtn">НЕТ</button>
+                    </div>
+                </div>
+            `;
+            
+            const valentineScene = document.createElement('div');
+            valentineScene.className = 'valentine-scene';
+            valentineScene.innerHTML = valentineSceneHTML;
+            document.body.appendChild(valentineScene);
+            
+            // Обработчики для валентинки
+            const envelope = document.getElementById('valentineEnvelope');
+            const yesBtn = document.getElementById('valentineYesBtn');
+            const noBtn = document.getElementById('valentineNoBtn');
+            const closeBtn = document.getElementById('valentineCloseBtn');
+            
+            const noTexts = [
+                "ТЫ УВЕРЕНА?",
+                "ПЕРЕПРОВЕРЬТЕ",
+                "ПОДТВЕРДИТЕ ВЫБОР",
+                "СИСТЕМНАЯ ОШИБКА",
+                "ПОВТОРИТЕ ЗАПРОС",
+                "ФИНАЛЬНОЕ РЕШЕНИЕ",
+                "ВЫ УВЕРЕНЫ?",
+                "ПРОВЕРКА ДАННЫХ",
+                "ПОСЛЕДНИЙ ЗАПРОС",
+                "ДОСТУП ОТКЛОНЁН"
+            ];
+            
+            let noClickCount = 0;
+            let yesBtnSize = 1;
+            
+            noBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                if (noClickCount < noTexts.length) {
+                    this.textContent = noTexts[noClickCount];
+                    noClickCount++;
+                    
+                    yesBtnSize += 0.1;
+                    yesBtn.style.transform = `scale(${yesBtnSize})`;
+                    
+                    if (noClickCount === noTexts.length) {
+                        setTimeout(() => {
+                            this.textContent = "ДОСТУП ЗАКРЫТ";
+                            this.style.cursor = 'not-allowed';
+                            this.onclick = null;
+                        }, 300);
+                    }
+                }
+            });
+            
+            yesBtn.addEventListener('click', function() {
+                envelope.classList.add('open');
+                setTimeout(() => {
+                    valentineScene.remove();
+                    openMessageScene();
+                }, 800);
+            });
+            
+            envelope.addEventListener('click', function() {
+                if (!envelope.classList.contains('open')) {
+                    yesBtn.click();
+                }
+            });
+            
+            closeBtn.addEventListener('click', function() {
+                valentineScene.remove();
+            });
+        }
+        
+        // Открытие сцены с сообщением
+        function openMessageScene() {
+            const messageSceneHTML = `
+                <style>
+                    .message-scene {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: #f5f2eb;
+                        z-index: 2000;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        padding: 20px;
+                        overflow: auto;
+                    }
+                    
+                    .message-container {
+                        width: 100%;
+                        max-width: 800px;
+                        height: auto;
+                        min-height: 500px;
+                        max-height: 90vh;
+                        position: relative;
+                    }
+                    
+                    .message {
+                        width: 100%;
+                        height: 100%;
+                        background: #fff;
+                        border: 2px solid #7a6f5e;
+                        box-shadow: 
+                            0 20px 50px rgba(0, 0, 0, 0.12),
+                            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+                        padding: 50px;
+                        position: relative;
+                        overflow-y: auto;
+                        font-family: 'Source Code Pro', monospace;
+                    }
+                    
+                    .message-content {
+                        font-family: 'Source Code Pro', monospace;
+                        font-size: 16px;
+                        line-height: 1.6;
+                        color: #2d2a24;
+                        max-width: 600px;
+                        margin: 0 auto;
+                    }
+                    
+                    .message-header h1 {
+                        font-family: 'Source Code Pro', monospace;
+                        font-size: 24px;
+                        color: #5a5348;
+                        letter-spacing: 2px;
+                        margin-bottom: 10px;
+                        text-transform: uppercase;
+                        font-weight: 500;
+                    }
+                    
+                    .close-message {
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        width: 44px;
+                        height: 44px;
+                        background: #fff;
+                        border: 2px solid #7a6f5e;
+                        color: #5a5348;
+                        cursor: pointer;
+                        font-family: 'Courier Prime', monospace;
+                        font-size: 20px;
+                        font-weight: bold;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        transition: all 0.3s ease;
+                        z-index: 1001;
+                    }
+                </style>
+                
+                <button class="close-message" id="messageCloseBtn">✕</button>
+                <div class="message-container">
+                    <div class="message">
+                        <div class="message-header">
+                            <h1>КОНФИДЕНЦИАЛЬНОЕ СООБЩЕНИЕ</h1>
+                            <div class="date">14.02.2026 | 00:00 | ПРИОРИТЕТ: КРИТИЧЕСКИЙ</div>
+                        </div>
+                        
+                        <div class="message-content">
+                            <p>Это сообщение было доставлено через защищённый канал связи. Информация, содержащаяся внутри, представляет высшую степень важности и предназначена исключительно для указанного получателя.</p>
+                            
+                            <p>Наблюдения показали: Женечка, моя любимая </p>
+
+                            <p>Я хочу, чтобы ты знала, как сильно и искренне я тебя люблю.</p>
+
+                            <p>Мы вместе уже 620 дней, и за это время ты стала для меня самым родным, тёплым и важным человеком.</p>
+
+                            <p>Каждый день рядом с тобой — это радость, спокойствие и чувство, что я именно там, где должен быть.</p>
+
+                            <p>Спасибо тебе за твою нежность, заботу и любовь, за то, что ты рядом и выбираешь нас.</p>
+
+                            <p>Я безумно тебя люблю и очень дорожу тобой.</p>
+                            
+                            <div class="message-footer">
+                                <div class="signature">[СОЕДИНЕНИЕ УСТАНОВЛЕНО]</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const messageScene = document.createElement('div');
+            messageScene.className = 'message-scene';
+            messageScene.innerHTML = messageSceneHTML;
+            document.body.appendChild(messageScene);
+            
+            document.getElementById('messageCloseBtn').addEventListener('click', function() {
+                messageScene.remove();
+            });
+        }
+        
+        // Запуск системы
+        bootSystem();
+        
+        // Обновление времени доставки каждую секунду
+        setInterval(() => {
+            const remainingEl = document.getElementById('timeRemaining');
+            if (remainingEl) {
+                remainingEl.textContent = updateDeliveryTime();
+            }
+        }, 1000);
+        
+        // Периодическая проверка доставки
+        setInterval(() => {
+            if (!isEarlyAccessActivated() && isTargetDateReached()) {
+                updateMainInterface();
+                showNotification('Новое сообщение получено!');
+            }
+        }, 60000); // Проверка каждую минуту
+    </script>
+</body>
+</html>
