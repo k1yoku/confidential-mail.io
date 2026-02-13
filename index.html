@@ -33,7 +33,6 @@
             overflow-x: hidden;
         }
 
-        /* Бумажная текстура фона */
         .paper-bg {
             position: fixed;
             top: 0;
@@ -47,7 +46,6 @@
                 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23f5f2eb"/><path d="M0,50 L100,50 M50,0 L50,100" stroke="%237a6f5e" stroke-width="0.5" stroke-opacity="0.1"/></svg>');
         }
 
-        /* Экран загрузки системы */
         .boot-screen {
             position: fixed;
             top: 0;
@@ -88,7 +86,6 @@
             transition: width 0.3s ease;
         }
 
-        /* Экран входа */
         .login-screen {
             position: fixed;
             top: 0;
@@ -218,7 +215,6 @@
             opacity: 0.7;
         }
 
-        /* Таймер доставки сообщения */
         .delivery-timer {
             position: fixed;
             top: 20px;
@@ -279,7 +275,6 @@
             background: #3a352d;
         }
 
-        /* Основной интерфейс */
         .main-interface {
             display: none;
             width: 100%;
@@ -294,7 +289,6 @@
             z-index: 800;
         }
 
-        /* Анимации */
         @keyframes blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
@@ -317,7 +311,6 @@
             animation: glitch 0.3s;
         }
 
-        /* Адаптивность */
         @media (max-width: 768px) {
             .login-container {
                 padding: 30px 20px;
@@ -362,10 +355,8 @@
     </style>
 </head>
 <body>
-    <!-- Бумажный фон -->
     <div class="paper-bg"></div>
     
-    <!-- Экран загрузки -->
     <div class="boot-screen" id="bootScreen">
         <div class="boot-text" id="bootText">
             > ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ...<br>
@@ -379,7 +370,6 @@
         </div>
     </div>
     
-    <!-- Экран входа -->
     <div class="login-screen" id="loginScreen">
         <div class="system-header">
             <div class="system-title">СИСТЕМА ДОСТАВКИ</div>
@@ -408,7 +398,6 @@
         </div>
     </div>
     
-    <!-- Таймер доставки сообщения -->
     <div class="delivery-timer" id="deliveryTimer">
         <div class="delivery-title">ДОСТАВКА СООБЩЕНИЯ</div>
         <div>Код подтверждения:</div>
@@ -421,17 +410,12 @@
         <button class="delivery-button" style="background: #7a6f5e; margin-top: 5px;" id="closeAccessBtn">ЗАКРЫТЬ</button>
     </div>
     
-    <!-- Основной интерфейс -->
     <div class="main-interface" id="mainInterface"></div>
 
     <script>
-        // Пароль для входа
         const SYSTEM_PASSWORD = "V@l3nt1n3_2026";
-        
-        // Код для раннего доступа (тот же пароль)
         const EARLY_ACCESS_CODE = "V@l3nt1n3_2026";
         
-        // Генерация случайного кода доступа (для отображения на сайте)
         function generateAccessCode() {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
             let code = '';
@@ -441,7 +425,6 @@
             return code;
         }
         
-        // Сохранение и загрузка кода доступа
         function getStoredAccessCode() {
             const stored = sessionStorage.getItem('message_access_code');
             if (stored) {
@@ -452,29 +435,23 @@
             return newCode;
         }
         
-        // Проверка, активирован ли ранний доступ
         function isEarlyAccessActivated() {
             return sessionStorage.getItem('message_early_access') === 'true';
         }
         
-        // Активация раннего доступа
         function activateEarlyAccess() {
             sessionStorage.setItem('message_early_access', 'true');
         }
         
-        // Сброс состояния при загрузке
         function resetAuthState() {
             sessionStorage.removeItem('is_authenticated');
         }
         
-        // Целевая дата: 14 февраля 2026 года, 00:00 по Москве
-        const targetDate = new Date('2026-02-14T00:00:00+03:00'); // MSK = UTC+3
+        const targetDate = new Date('2026-02-14T00:00:00+03:00');
         
-        // Переменные
         let accessCode = getStoredAccessCode();
         let isAuthenticated = false;
         
-        // Элементы DOM
         const bootScreen = document.getElementById('bootScreen');
         const bootText = document.getElementById('bootText');
         const bootProgress = document.getElementById('bootProgress');
@@ -490,14 +467,11 @@
         const closeAccessBtn = document.getElementById('closeAccessBtn');
         const deliveryTime = document.getElementById('deliveryTime');
         
-        // Сброс аутентификации при загрузке
         resetAuthState();
         
-        // Установка даты доставки
         deliveryTime.textContent = '14.02.2026 00:00 MSK';
         accessCodeEl.textContent = '••••••••••••••';
         
-        // Функция обновления времени до доставки
         function updateDeliveryTime() {
             const now = new Date();
             const timeDiff = targetDate.getTime() - now.getTime();
@@ -514,13 +488,11 @@
             return `${days}д ${hours}ч ${minutes}м ${seconds}с`;
         }
         
-        // Функция проверки, наступила ли целевая дата
         function isTargetDateReached() {
             const now = new Date();
             return now >= targetDate || isEarlyAccessActivated();
         }
         
-        // Загрузка системы
         function bootSystem() {
             const bootMessages = [
                 "> ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ...",
@@ -543,7 +515,6 @@
                         bootScreen.style.display = 'none';
                         loginScreen.style.display = 'flex';
                         
-                        // АВТОМАТИЧЕСКОЕ ЗАПОЛНЕНИЕ ПОЛЕЙ ВХОДА
                         setTimeout(() => {
                             simulateTyping(loginInput, 'AGENT', 100, () => {
                                 setTimeout(() => {
@@ -560,7 +531,6 @@
             showNextMessage();
         }
         
-        // Симуляция печати для автозаполнения
         function simulateTyping(element, text, speed, callback) {
             let i = 0;
             element.value = '';
@@ -578,33 +548,27 @@
             typeChar();
         }
         
-        // Кнопка входа
         loginBtn.addEventListener('click', function() {
             const username = loginInput.value.trim();
             const password = passwordInput.value;
             
-            // Проверка логина и пароля
             if (password === SYSTEM_PASSWORD) {
                 isAuthenticated = true;
                 sessionStorage.setItem('is_authenticated', 'true');
                 this.textContent = 'ДОСТУП РАЗРЕШЁН';
                 this.style.background = '#5a5348';
                 
-                // Эффект входа
                 loginScreen.classList.add('glitch');
                 setTimeout(() => {
                     loginScreen.classList.remove('glitch');
                     loginScreen.style.display = 'none';
                     
-                    // Загружаем основной интерфейс
                     loadMainInterface();
                     mainInterface.style.display = 'flex';
                     
-                    // Показываем таймер доставки если нужно
                     if (!isTargetDateReached()) {
                         setTimeout(() => {
                             deliveryTimer.style.display = 'block';
-                            // Не показываем настоящий код на сайте!
                             accessCodeEl.textContent = '••••••••••••••';
                         }, 1000);
                     }
@@ -624,15 +588,11 @@
             }
         });
         
-        // Кнопка подтверждения кода доступа
         accessBtn.addEventListener('click', function() {
             const input = accessInput.value.trim();
-            // Используем заранее заданный код
             if (input === EARLY_ACCESS_CODE) {
                 activateEarlyAccess();
                 deliveryTimer.style.display = 'none';
-                
-                // Обновляем интерфейс
                 updateMainInterface();
                 showNotification('Доступ к сообщению получен.');
             } else {
@@ -645,12 +605,10 @@
             }
         });
         
-        // Закрыть таймер доставки
         closeAccessBtn.addEventListener('click', function() {
             deliveryTimer.style.display = 'none';
         });
         
-        // Показ уведомления
         function showNotification(message) {
             const notification = document.createElement('div');
             notification.style.cssText = `
@@ -677,7 +635,6 @@
             }, 3000);
         }
         
-        // Загрузка основного интерфейса
         function loadMainInterface() {
             const mainHTML = `
                 <style>
@@ -688,7 +645,6 @@
                         height: 100%;
                     }
                     
-                    /* Статус бар */
                     .status-bar {
                         background: #fff;
                         border-bottom: 2px solid #7a6f5e;
@@ -735,7 +691,6 @@
                         border: 1px solid rgba(122, 111, 94, 0.3);
                     }
                     
-                    /* Основной контейнер */
                     .main-container {
                         display: flex;
                         flex: 1;
@@ -751,7 +706,6 @@
                         overflow: hidden;
                     }
                     
-                    /* Панель навигации */
                     .nav-panel {
                         width: 250px;
                         background: #f8f6f0;
@@ -798,7 +752,6 @@
                         font-weight: 500;
                     }
                     
-                    /* Основная область контента */
                     .content-area {
                         flex: 1;
                         display: flex;
@@ -827,7 +780,6 @@
                         flex: 1;
                     }
                     
-                    /* Уведомление о будущем сообщении */
                     .message-notification {
                         background: #fff;
                         border: 2px solid #7a6f5e;
@@ -858,7 +810,6 @@
                         margin-top: 20px;
                     }
                     
-                    /* Сообщение */
                     .message-item {
                         background: #fff;
                         border-bottom: 2px solid #7a6f5e;
@@ -904,7 +855,6 @@
                         margin-top: 10px;
                     }
                     
-                    /* Инструкции */
                     .instructions {
                         margin-top: 30px;
                         padding: 20px;
@@ -915,7 +865,6 @@
                         color: #5a5348;
                     }
                     
-                    /* Адаптивность */
                     @media (max-width: 768px) {
                         .main-container {
                             flex-direction: column;
@@ -989,21 +938,16 @@
                             <div>Защищённый канал связи активен</div>
                         </div>
                         
-                        <div class="content-body" id="contentBody">
-                            <!-- Содержимое будет сгенерировано JavaScript -->
-                        </div>
+                        <div class="content-body" id="contentBody"></div>
                     </div>
                 </div>
             `;
             
             mainInterface.innerHTML = mainHTML;
             updateMainInterface();
-            
-            // Инициализация интерфейса
             initMainInterface();
         }
         
-        // Обновление основного интерфейса
         function updateMainInterface() {
             const isMessageAvailable = isTargetDateReached();
             const contentBody = document.getElementById('contentBody');
@@ -1020,7 +964,6 @@
                     </div>
                 `;
                 
-                // Добавляем обработчик клика на сообщение
                 setTimeout(() => {
                     const messageNotification = document.getElementById('mainMessageNotification');
                     if (messageNotification) {
@@ -1045,16 +988,12 @@
                 `;
             }
             
-            // Обновление времени
             updateCurrentTime();
         }
         
-        // Инициализация основного интерфейса
         function initMainInterface() {
-            // Обновление времени каждую секунду
             setInterval(updateCurrentTime, 1000);
             
-            // Кнопка выхода
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', function() {
@@ -1064,7 +1003,6 @@
                 });
             }
             
-            // Навигационное меню
             const navItems = document.querySelectorAll('.nav-menu li:not(#logoutBtn)');
             navItems.forEach(item => {
                 item.addEventListener('click', function() {
@@ -1078,7 +1016,6 @@
             });
         }
         
-        // Обновление текущего времени
         function updateCurrentTime() {
             const now = new Date();
             const dateStr = now.toLocaleDateString('ru-RU');
@@ -1107,7 +1044,6 @@
             }
         }
         
-        // Открытие сцены с валентинкой
         function openValentineScene() {
             const valentineSceneHTML = `
                 <style>
@@ -1259,7 +1195,6 @@
             valentineScene.innerHTML = valentineSceneHTML;
             document.body.appendChild(valentineScene);
             
-            // Обработчики для валентинки
             const envelope = document.getElementById('valentineEnvelope');
             const yesBtn = document.getElementById('valentineYesBtn');
             const noBtn = document.getElementById('valentineNoBtn');
@@ -1320,7 +1255,6 @@
             });
         }
         
-        // Открытие сцены с сообщением
         function openMessageScene() {
             const messageSceneHTML = `
                 <style>
@@ -1362,25 +1296,6 @@
                         font-family: 'Source Code Pro', monospace;
                     }
                     
-                    .message-content {
-                        font-family: 'Source Code Pro', monospace;
-                        font-size: 16px;
-                        line-height: 1.6;
-                        color: #2d2a24;
-                        max-width: 600px;
-                        margin: 0 auto;
-                    }
-                    
-                    .message-header h1 {
-                        font-family: 'Source Code Pro', monospace;
-                        font-size: 24px;
-                        color: #5a5348;
-                        letter-spacing: 2px;
-                        margin-bottom: 10px;
-                        text-transform: uppercase;
-                        font-weight: 500;
-                    }
-                    
                     .close-message {
                         position: fixed;
                         top: 20px;
@@ -1400,33 +1315,151 @@
                         transition: all 0.3s ease;
                         z-index: 1001;
                     }
+                    
+                    .encryption-tag {
+                        font-family: 'Courier Prime', monospace;
+                        font-size: 12px;
+                        color: #7a6f5e;
+                        margin-bottom: 30px;
+                        padding-bottom: 15px;
+                        border-bottom: 1px dashed rgba(122, 111, 94, 0.3);
+                        letter-spacing: 2px;
+                        text-transform: uppercase;
+                    }
+                    
+                    .message-metadata {
+                        font-family: 'Courier Prime', monospace;
+                        font-size: 14px;
+                        color: #5a5348;
+                        margin-bottom: 25px;
+                        padding: 15px;
+                        background: #f8f6f0;
+                        border-left: 4px solid #7a6f5e;
+                    }
+                    
+                    .message-body {
+                        margin: 35px 0 30px;
+                        padding: 25px 30px;
+                        background: rgba(122, 111, 94, 0.03);
+                        border: 2px solid #7a6f5e;
+                        position: relative;
+                        font-family: 'Source Code Pro', monospace;
+                    }
+                    
+                    .message-body::before {
+                        content: 'РАСШИФРОВАННОЕ СООБЩЕНИЕ';
+                        position: absolute;
+                        top: -12px;
+                        left: 20px;
+                        background: #fff;
+                        padding: 0 15px;
+                        font-size: 14px;
+                        color: #5a5348;
+                        letter-spacing: 3px;
+                        font-weight: bold;
+                    }
+                    
+                    .message-signature {
+                        margin-top: 30px;
+                        padding-top: 20px;
+                        border-top: 1px dashed rgba(122, 111, 94, 0.4);
+                        text-align: right;
+                        font-size: 16px;
+                        color: #5a5348;
+                    }
+                    
+                    .message-footer {
+                        margin-top: 40px;
+                        padding-top: 20px;
+                        text-align: center;
+                        font-family: 'Courier Prime', monospace;
+                        color: #7a6f5e;
+                        font-size: 12px;
+                        letter-spacing: 1px;
+                        border-top: 1px solid rgba(122, 111, 94, 0.2);
+                    }
                 </style>
                 
                 <button class="close-message" id="messageCloseBtn">✕</button>
                 <div class="message-container">
                     <div class="message">
-                        <div class="message-header">
-                            <h1>КОНФИДЕНЦИАЛЬНОЕ СООБЩЕНИЕ</h1>
-                            <div class="date">14.02.2026 | 00:00 | ПРИОРИТЕТ: КРИТИЧЕСКИЙ</div>
+                        <div class="encryption-tag">
+                            ⚡ ГРИФ: ТОЛЬКО ДЛЯ ПОЛУЧАТЕЛЯ | РАСШИФРОВКА ЗАВЕРШЕНА ⚡
                         </div>
-                        
-                        <div class="message-content">
-                            <p>Это сообщение было доставлено через защищённый канал связи. Информация, содержащаяся внутри, представляет высшую степень важности и предназначена исключительно для указанного получателя.</p>
+
+                        <div class="message-metadata">
+                            [ЖЕНЕЧКЕ • 14.02.2026 • 620 ДНЕЙ С НАЧАЛА ПЕРЕДАЧИ ДАННЫХ]
+                        </div>
+
+                        <div class="message-body">
+                            <p style="margin-bottom: 20px; font-size: 18px; line-height: 1.7; color: #3a352d;">
+                                «Наблюдения показали: Женечка, моя любимая...
+                            </p>
                             
-                            <p>Наблюдения показали: Женечка, моя любимая </p>
+                            <p style="margin-bottom: 20px; font-size: 18px; line-height: 1.7; color: #3a352d;">
+                                Я хочу, чтобы ты знала, как сильно и искренне я тебя люблю.
+                            </p>
 
-                            <p>Я хочу, чтобы ты знала, как сильно и искренне я тебя люблю.</p>
+                            <p style="margin-bottom: 20px; font-size: 18px; line-height: 1.7; color: #3a352d;">
+                                Мы вместе уже 620 дней. Это 620 дней улыбок, разговоров до утра, 
+                                совместных планов и тихого счастья быть рядом с тобой.
+                            </p>
 
-                            <p>Мы вместе уже 620 дней, и за это время ты стала для меня самым родным, тёплым и важным человеком.</p>
+                            <p style="margin-bottom: 20px; font-size: 18px; line-height: 1.7; color: #3a352d;">
+                                Ты стала для меня самым родным, тёплым и важным человеком. 
+                                Каждый день рядом с тобой — это радость, спокойствие и чувство, 
+                                что я именно там, где должен быть.
+                            </p>
 
-                            <p>Каждый день рядом с тобой — это радость, спокойствие и чувство, что я именно там, где должен быть.</p>
+                            <p style="margin-bottom: 20px; font-size: 18px; line-height: 1.7; color: #3a352d;">
+                                Спасибо тебе за твою нежность, заботу и любовь, за то, 
+                                что ты рядом и выбираешь нас. Спасибо, что ты есть.
+                            </p>
 
-                            <p>Спасибо тебе за твою нежность, заботу и любовь, за то, что ты рядом и выбираешь нас.</p>
-
-                            <p>Я безумно тебя люблю и очень дорожу тобой.</p>
+                            <p style="margin-bottom: 20px; font-size: 18px; line-height: 1.7; color: #3a352d;">
+                                Я безумно тебя люблю. Очень. Сильно. Навсегда.»
+                            </p>
                             
-                            <div class="message-footer">
-                                <div class="signature">[СОЕДИНЕНИЕ УСТАНОВЛЕНО]</div>
+                            <div class="message-signature">
+                                С Днём святого Валентина, моя самая лучшая девочка<br>
+                                <span style="font-size: 14px; color: #7a6f5e;">[ПОДПИСЬ ЗАШИФРОВАНА: ТВОЙ НАВСЕГДА]</span>
+                            </div>
+                        </div>
+
+                        <div style="
+                            margin-top: 30px;
+                            padding: 20px;
+                            background: #fff;
+                            border: 1px solid rgba(122, 111, 94, 0.3);
+                            font-family: 'Courier Prime', monospace;
+                            font-size: 13px;
+                            color: #5a5348;
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 15px;
+                            align-items: center;
+                            justify-content: space-between;
+                        ">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #7a6f5e;">█</span>
+                                <span>ДАТА ПЕРЕДАЧИ: 14.02.2026 00:00 MSK</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #7a6f5e;">█</span>
+                                <span>СТАТУС: ПРОЧИТАНО</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="color: #7a6f5e;">█</span>
+                                <span>УРОВЕНЬ ДОВЕРИЯ: МАКСИМАЛЬНЫЙ</span>
+                            </div>
+                        </div>
+
+                        <div class="message-footer">
+                            <div style="margin-bottom: 10px;">[СОЕДИНЕНИЕ УСТАНОВЛЕНО • КАНАЛ СВЯЗИ ЗАЩИЩЁН]</div>
+                            <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                                <span>✦ 620 ДНЕЙ ✦</span>
+                                <span>✦ 14.02.2026 ✦</span>
+                                <span>✦ НАВСЕГДА ТВОЙ ✦</span>
                             </div>
                         </div>
                     </div>
@@ -1443,10 +1476,8 @@
             });
         }
         
-        // Запуск системы
         bootSystem();
         
-        // Обновление времени доставки каждую секунду
         setInterval(() => {
             const remainingEl = document.getElementById('timeRemaining');
             if (remainingEl) {
@@ -1454,13 +1485,12 @@
             }
         }, 1000);
         
-        // Периодическая проверка доставки
         setInterval(() => {
             if (!isEarlyAccessActivated() && isTargetDateReached()) {
                 updateMainInterface();
                 showNotification('Новое сообщение получено!');
             }
-        }, 60000); // Проверка каждую минуту
+        }, 60000);
     </script>
 </body>
 </html>
