@@ -94,14 +94,13 @@
             height: 100%;
             background: #f5f2eb;
             color: #5a5348;
-            display: flex;
+            display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 900;
             font-family: 'Source Code Pro', monospace;
             padding: 20px;
-            display: none;
         }
 
         .system-header {
@@ -311,6 +310,7 @@
             animation: glitch 0.3s;
         }
 
+        /* Адаптивные стили для мобильных устройств */
         @media (max-width: 768px) {
             .login-container {
                 padding: 30px 20px;
@@ -512,9 +512,13 @@
                     setTimeout(showNextMessage, 800);
                 } else {
                     setTimeout(() => {
+                        // Скрываем загрузочный экран
                         bootScreen.style.display = 'none';
+                        
+                        // Показываем экран логина
                         loginScreen.style.display = 'flex';
                         
+                        // Запускаем автозаполнение через небольшую задержку
                         setTimeout(() => {
                             simulateTyping(loginInput, 'AGENT', 100, () => {
                                 setTimeout(() => {
@@ -729,6 +733,11 @@
                         font-size: 20px;
                         color: #5a5348;
                         margin-bottom: 5px;
+                    }
+                    
+                    .nav-menu {
+                        list-style: none;
+                        margin-bottom: 30px;
                     }
                     
                     .nav-menu li {
@@ -1384,7 +1393,7 @@
                 <div class="message-container">
                     <div class="message">
                         <div class="encryption-tag">
-                            ⚡ ГРИФ: ТОЛЬКО ДЛЯ ПОЛУЧАТЕЛЯ | РАСШИФРОВКА ЗАВЕРШЕНА ⚡
+                            ГРИФ: ТОЛЬКО ДЛЯ ПОЛУЧАТЕЛЯ | РАСШИФРОВКА ЗАВЕРШЕНА
                         </div>
 
                         <div class="message-metadata">
@@ -1413,7 +1422,7 @@
 
                             <p style="margin-bottom: 20px; font-size: 18px; line-height: 1.7; color: #3a352d;">
                                 Спасибо тебе за твою нежность, заботу и любовь, за то, 
-                                что ты рядом и выбираешь нас. Спасибо, что ты есть.
+                                что ты рядом. Спасибо, что ты есть.
                             </p>
 
                             <p style="margin-bottom: 20px; font-size: 18px; line-height: 1.7; color: #3a352d;">
@@ -1476,6 +1485,7 @@
             });
         }
         
+        // Запускаем систему
         bootSystem();
         
         setInterval(() => {
